@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Beam Glue: Set Size 2</title>
+    <script
+            src="https://code.jquery.com/jquery-3.4.1.min.js"
+            integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+            crossorigin="anonymous"></script>
+    <script src="js/jspsych.js"></script>
+    <script src="js/plugins/beam-glue-keyboard-response.js"></script>
+    <script src="js/plugins/jspsych-survey-text.js"></script>
+    <script src="js/plugins/jspsych-fullscreen.js"></script>
+    <script src="js/plugins/jspsych-instructions.js"></script>
+    <script src="configs/trial_types.js"></script>
+    <script src="configs/letter_stimuli.js"></script>
+    <script src="js/utils/utilities.js"></script>
+	<script src = '../lib/DVA_Manager.js'></script>
+    <script src="js/DataLogger.js"></script>
+    <script src="js/utils/generate_trials.js"></script>
+    <link href="css/jspsych.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+
+<script>
+    if (document.addEventListener) {
+        $(document).on('fullscreenchange', exitHandler);
+        $(document).on('mozfullscreenchange', exitHandler);
+        $(document).on('MSFullscreenChange', exitHandler);
+        $(document).on('webkitfullscreenchange', exitHandler);
+    }
+
+    function exitHandler() {
+        if (document.webkitIsFullScreen === false) 			 { alertAndAdd(); }
+        else if (document.mozFullScreen === false) 			 { alertAndAdd(); }
+        else if (document.msFullscreenElement === false)     { alertAndAdd(); }
+    }
+
+    function alertAndAdd() {
+        alert("You have left fullscreen mode, please click anywhere within the browser window to return to fullscreen mode")
+        document.addEventListener('click', requestFullscreen)
+    }
+
+
+    function requestFullscreen() {
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+        } else if (document.documentElement.mozRequestFullScreen) {
+            document.documentElement.mozRequestFullScreen();
+        } else if (document.documentElement.webkitRequestFullScreen) {
+            document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+        }
+    }
+
+    const fix = '<div class="fix-cue-box" style="background-image: url(images/neutral-face.png)"></div>'
+    const cue_L = '<div class="fix-cue-box" style="background-image: url(images/left-face.png)"></div>'
+    const cue_R = '<div class="fix-cue-box" style="background-image: url(images/right-face.png)"></div>'
+
+    let responses = jsPsych.randomization.shuffle(['m', 'z'])
+    const present_key = responses[0];
+    const absent_key = responses[1];
+
+    const practice_trials_conjunction = generate_trials(trial_types, 'practice', 'conjunction')
+    const practice_trials_feature = generate_trials(trial_types, 'practice', 'feature')
+
+    const test_trials_conjunction = generate_trials(trial_types, 'test', 'conjunction')
+    const test_trials_feature = generate_trials(trial_types, 'test', 'feature')
+
+    var start = `<p>Press any key to begin the experiment</p>`
+
+    var conjunction_instructions =
+        `<p><strong>CONJUNCTION SEARCH</strong></p>` +
+        `<p>For this part of the experiment, you will see a group of letters.</p>` +
+        `<p>If one of the letters is a <span class='bold' style="color: #0083d8">blue O</span>, press the <span class="present-key">${present_key}</span> key.</p>` +
+        `<p>If <b>NONE</b> of the letters is a <span class='bold' style="color: #0083d8">blue O</span>, press the <span class="absent-key">${absent_key}</span> key.</p>` +
+        `<br>` +
+        `<p>After each decision, please look at the <strong>'+'</strong> and press <strong>'k'</strong> to start the next round.</p>` +
+        `<p>You will hear a tone if you make a mistake. Please ensure that your volume is up.</p>` +
+        `<br>` +
+        `<p>Press the spacebar to begin.</p>`
+
+    var feature_instructions =
+        `<p><strong>FEATURE SEARCH</strong></p>` +
+        `<p>For this part of the experiment, you will see a group of letters.</p>` +
+        `<p>If one of the letters is an <b>O</b>, or if one of the letters is <span class='bold' style="color: #0083d8">blue</span>, press the <span class="present-key">${present_key}</span> key.</p>` +
+        `<p>If <b>NONE</b> of the letters are an <b>O</b>, or the colour <span class='bold' style="color: #0083d8">blue</span>, press the <span class="absent-key">${absent_key}</span> key.</p>` +
+        `<br>` +
+        `<p>After each decision, please look at the <strong>'+'</strong> and press <strong>'k'</strong> to start the next round.</p>` +
+        `<p>You will hear a tone if you make a mistake. Please ensure that your volume is up.</p>` +
+        `<br>` +
+        `<p>Press the spacebar to begin.</p>`
+
+
+    let dva_mgr = new DVAManager();
+    dva_mgr.one_dva = 50;
+
+    var audio = new Audio('aud/error_beep.mp3');
+
+    var start_page = {
+        type: 'beam-glue-keyboard-response',
+        stimulus: start,
+        cfg: {one_dva: dva_mgr.one_dva},
+        data: {trial_event: "start_experiment"}
+    }
+
+    var get_demographics = {
+        type: 'survey-text',
+        questions: [
+            {name: 'age', prompt: 'What is your age?'},
+            {name: 'handedness', prompt: 'Are you right-handed, left, or ambidextrous?'},
+            {name: 'sex', prompt: 'What is your birth sex? (male, female, intersex)'},
+            {name: 'ID', prompt: "Please enter the code emailed to you by the researcher here:"}
+        ],
+        on_finish: function () {
+            document.documentElement.style.cursor = 'none';
+        } // hide cursor once practice phase begins
+    }
+
+
+    var feature_search_instrux = {
+        type: 'beam-glue-keyboard-response',
+        stimulus: feature_instructions,
+        choices: ['space'],
+        cfg: {one_dva: dva_mgr.one_dva},
+        on_finish: function(data) {
+            data.trial_event = 'feature_instructions'
+        }
+    }
+
+    var conjunction_search_instrux = {
+        type: 'beam-glue-keyboard-response',
+        stimulus: conjunction_instructions,
+        choices: ['space'],
+        cfg: {one_dva: dva_mgr.one_dva},
+        on_finish: function(data) {
+            data.trial_event = 'conjunction_instructions'
+        }
+    }
+
+    var begin_practice_block = {
+        type: 'beam-glue-keyboard-response',
+        stimulus: '<p>Press spacebar to begin.</p>',
+        choices: ['space'],
+        cfg: {one_dva: dva_mgr.one_dva},
+        on_finish: function(data) {
+            data.trial_event = 'begin_practice'
+        }
+    }
+
+    var begin_trial_event = {
+        type: 'beam-glue-keyboard-response',
+        choices: ["k"],
+        stimulus: fix,
+        cfg: {one_dva: dva_mgr.one_dva},
+        on_finish: function(data) {
+            data.trial_event = 'trial_init'
+        }
+    }
+
+    var fixation_event = {
+        type: 'beam-glue-keyboard-response',
+        choices: jsPsych.NO_KEYS,
+        stimulus: fix,
+        cfg: {one_dva: dva_mgr.one_dva},
+        trial_duration: 800,
+        on_finish: function(data) {
+            data.trial_event = 'cue'
+        }
+    };
+
+    var cue_event = {
+        type: 'beam-glue-keyboard-response',
+        choices: jsPsych.NO_KEYS,
+        stimulus: jsPsych.timelineVariable('cue'),
+        cfg: {one_dva: dva_mgr.one_dva},
+        trial_duration: 500,
+        data: jsPsych.timelineVariable('data'),
+        on_finish: function (data) {
+            data.trial_event = 'target'
+        }
+    }
+
+    var target_event = {
+        type: 'beam-glue-keyboard-response',
+        choices: ['m', 'z'],
+        stimulus: jsPsych.timelineVariable('target'),
+        cfg: {one_dva: dva_mgr.one_dva},
+        stimulus_duration: 83,
+        data: jsPsych.timelineVariable('data'),
+        on_finish: function (data) {
+            data.trial_event = 'response';
+            data.correct = data.key_press == jsPsych.pluginAPI.convertKeyCharacterToKeyCode(data.correct_response)
+            if (!data.correct) {
+                audio.play();
+                data.tone_played = 'true';
+            } else {
+                data.tone_played = 'false';
+            }
+        }
+    }
+
+    var goodbye = {
+        type: 'beam-glue-keyboard-response',
+        stimulus: '<p>You have completed the experiment, press spacebar to exit fullscreen.</p>',
+        cfg: {one_dva: dva_mgr.one_dva},
+        data: {trial_event: "exit_screen"},
+        on_start: function() {
+            $(document).off();
+            document.documentElement.style.cursor = 'auto'; // un-hide cursor once experiment complete
+
+        }
+    }
+
+    var trial_timeline = [
+        begin_trial_event,
+        fixation_event,
+        cue_event,
+        target_event
+    ];
+
+    var practice_procedure_conjunction = {
+        timeline: trial_timeline,
+        timeline_variables: practice_trials_conjunction,
+        repetitions: 1,
+        randomize_order: false
+    }
+
+    var test_procedure_conjunction = {
+        timeline: trial_timeline,
+        timeline_variables: test_trials_conjunction,
+        repetitions: 1,
+        randomize_order: false
+    };
+
+    var practice_procedure_feature = {
+        timeline: trial_timeline,
+        timeline_variables: practice_trials_feature,
+        repetitions: 1,
+        randomize_order: false
+    }
+
+    var test_procedure_feature = {
+        timeline: trial_timeline,
+        timeline_variables: test_trials_feature,
+        repetitions: 1,
+        randomize_order: false
+    };
+
+
+    let fullscreen = {type: 'fullscreen', fullscreen_mode: true}
+    let exit_fullscreen = {type: 'fullscreen', fullscreen_mode: false}
+
+    let feature_first = [
+        fullscreen,
+        start_page,
+        get_demographics,
+        feature_search_instrux,
+        begin_practice_block,
+        practice_procedure_feature,
+        test_procedure_feature,
+        conjunction_search_instrux,
+        begin_practice_block,
+        practice_procedure_conjunction,
+        test_procedure_conjunction,
+        goodbye,
+        exit_fullscreen
+    ]
+
+    let conjunction_first = [
+        fullscreen,
+        start_page,
+        get_demographics,
+        conjunction_search_instrux,
+        begin_practice_block,
+        practice_procedure_conjunction,
+        test_procedure_conjunction,
+        feature_search_instrux,
+        begin_practice_block,
+        practice_procedure_feature,
+        test_procedure_feature,
+        goodbye,
+        exit_fullscreen
+    ]
+
+    let final_timeline = (Math.random() >= 0.5) ? feature_first : conjunction_first;
+
+    dva_mgr.launch = function () {
+        jsPsych.init({
+            timeline: final_timeline,
+            on_finish: function () {
+                $(document).off();
+                document.documentElement.style.cursor = 'auto'; // un-hide cursor once experiment complete
+                pid = jsPsych.randomization.randomID(12);
+                jsPsych.data.addProperties({pid: pid});
+                filename = pid.concat(".csv")
+                DataLogger.send(filename, jsPsych.data.get().csv(), 'n.murray@dal.ca')
+            }
+        })
+    }
+
+
+    dva_mgr.init();
+
+
+</script>
+</body>
+</html>
