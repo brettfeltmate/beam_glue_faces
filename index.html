@@ -73,7 +73,8 @@
         `<p>If one of the letters is a <span class='bold' style="color: #0083d8">blue O</span>, press the <span class="present-key">${present_key}</span> key.</p>` +
         `<p>If <b>NONE</b> of the letters is a <span class='bold' style="color: #0083d8">blue O</span>, press the <span class="absent-key">${absent_key}</span> key.</p>` +
         `<br>` +
-        `<p>After each decision, please look at the <strong>'+'</strong> and press <strong>'k'</strong> to start the next round.</p>` +
+        `<p>After each decision, please look at the <strong>face</strong> and press <strong>'k'</strong> to start the next trial.</p>` +
+        `<p>Please try to respond as quickly and accurately as possible.</p>` +
         `<p>You will hear a tone if you make a mistake. Please ensure that your volume is up.</p>` +
         `<br>` +
         `<p>Press the spacebar to begin.</p>`
@@ -84,14 +85,15 @@
         `<p>If one of the letters is an <b>O</b>, or if one of the letters is <span class='bold' style="color: #0083d8">blue</span>, press the <span class="present-key">${present_key}</span> key.</p>` +
         `<p>If <b>NONE</b> of the letters are an <b>O</b>, or the colour <span class='bold' style="color: #0083d8">blue</span>, press the <span class="absent-key">${absent_key}</span> key.</p>` +
         `<br>` +
-        `<p>After each decision, please look at the <strong>'+'</strong> and press <strong>'k'</strong> to start the next round.</p>` +
+        `<p>After each decision, please look at the <strong>face</strong> and press <strong>'k'</strong> to start the next trial.</p>` +
+        `<p>Please try to respond as quickly and accurately as possible.</p>` +
         `<p>You will hear a tone if you make a mistake. Please ensure that your volume is up.</p>` +
         `<br>` +
         `<p>Press the spacebar to begin.</p>`
 
 
     let dva_mgr = new DVAManager();
-    dva_mgr.one_dva = 50;
+    dva_mgr.one_dva = 25;
 
     var audio = new Audio('aud/error_beep.mp3');
 
@@ -210,6 +212,38 @@
         }
     }
 
+    var block_break_1 = {
+        type: 'beam-glue-keyboard-response',
+        stimulus: `<p>You are 1/4 of the way through the study</p>` +
+                  `<p>Press the spacebar when you are ready to resume.</p>`,
+        choices: ['space'],
+        cfg: {one_dva: dva_mgr.one_dva},
+        on_finish: function(data) {
+            data.trial_event = 'break_period'
+        }
+    }
+    var block_break_2 = {
+        type: 'beam-glue-keyboard-response',
+        stimulus: `<p>You are 2/4 of the way through the study</p>` +
+                  `<p>Your goal will now change slightly.</p>` +
+                  `<p>Press the spacebar when you are ready to resume.</p>`,
+        choices: ['space'],
+        cfg: {one_dva: dva_mgr.one_dva},
+        on_finish: function(data) {
+            data.trial_event = 'break_period'
+        }
+    }
+    var block_break_3 = {
+        type: 'beam-glue-keyboard-response',
+        stimulus: `<p>You are 3/4 of the way through the study</p><p>Press the spacebar when you are ready to resume.</p>`,
+        choices: ['space'],
+        cfg: {one_dva: dva_mgr.one_dva},
+        on_finish: function(data) {
+            data.trial_event = 'break_period'
+        }
+    }
+
+
     var trial_timeline = [
         begin_trial_event,
         fixation_event,
@@ -221,28 +255,42 @@
         timeline: trial_timeline,
         timeline_variables: practice_trials_conjunction,
         repetitions: 1,
-        randomize_order: false
+        randomize_order: true
     }
 
-    var test_procedure_conjunction = {
+    var test_procedure_conjunction_first = {
         timeline: trial_timeline,
         timeline_variables: test_trials_conjunction,
         repetitions: 1,
-        randomize_order: false
+        randomize_order: true
     };
+
+    var test_procedure_conjunction_second = {
+        timeline: trial_timeline,
+        timeline_variables: test_trials_conjunction,
+        repetitions: 1,
+        randomize_order: true
+    };
+
 
     var practice_procedure_feature = {
         timeline: trial_timeline,
         timeline_variables: practice_trials_feature,
         repetitions: 1,
-        randomize_order: false
+        randomize_order: true
     }
 
-    var test_procedure_feature = {
+    var test_procedure_feature_first = {
         timeline: trial_timeline,
         timeline_variables: test_trials_feature,
         repetitions: 1,
-        randomize_order: false
+        randomize_order: true
+    };
+    var test_procedure_feature_second = {
+        timeline: trial_timeline,
+        timeline_variables: test_trials_feature,
+        repetitions: 1,
+        randomize_order: true
     };
 
 
@@ -256,11 +304,16 @@
         feature_search_instrux,
         begin_practice_block,
         practice_procedure_feature,
-        test_procedure_feature,
+        test_procedure_feature_first,
+        block_break_1,
+        test_procedure_feature_second,
+        block_break_2,
         conjunction_search_instrux,
         begin_practice_block,
         practice_procedure_conjunction,
-        test_procedure_conjunction,
+        test_procedure_conjunction_first,
+        block_break_3,
+        test_procedure_conjunction_second,
         goodbye,
         exit_fullscreen
     ]
@@ -272,11 +325,16 @@
         conjunction_search_instrux,
         begin_practice_block,
         practice_procedure_conjunction,
-        test_procedure_conjunction,
+        test_procedure_conjunction_first,
+        block_break_1,
+        test_procedure_conjunction_second,
+        block_break_2,
         feature_search_instrux,
         begin_practice_block,
         practice_procedure_feature,
-        test_procedure_feature,
+        test_procedure_feature_first,
+        block_break_3,
+        test_procedure_feature_second,
         goodbye,
         exit_fullscreen
     ]
@@ -295,10 +353,10 @@
                 DataLogger.send(filename, jsPsych.data.get().csv(), 'n.murray@dal.ca')
             }
         })
-    }
+   }
 
 
-    dva_mgr.init();
+   dva_mgr.init();
 
 
 </script>
