@@ -69,7 +69,7 @@ DataLogger.send = function(name, data, email){
     };
 
     DataLogger.fail = function() {
-        let fail_msg = `Something has gone wrong delivering your data to the server. Please copy everything below and send it to the following e-mail address:<br /> <a href='mailto: ${DataLogger.email}'>${DataLogger.email}</a>:`;
+        let fail_msg = `Something has gone wrong delivering your data to the server. Please right-click on the page, select 'copy all', and send it to the following e-mail address:<br /> <a href='mailto: ${DataLogger.email}'>${DataLogger.email}</a>:`;
         $("#DataLogger-message").append(
             $("<div />").append([
                 $("<p />").html(fail_msg),
