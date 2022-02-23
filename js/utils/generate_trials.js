@@ -15,7 +15,7 @@ generate_trials = function (table, test_part, search_condition) {
     }
 
 
-    let repetitions = test_part === 'practice' ? 2 : 20;
+    let repetitions = test_part === 'practice' ? 1 : 1;
 
     block_num += 1;
 

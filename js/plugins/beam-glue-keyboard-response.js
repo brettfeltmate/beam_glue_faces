@@ -74,6 +74,7 @@ jsPsych.plugins["beam-glue-keyboard-response"] = (function () {
 
     plugin.trial = function (display_element, trial) {
 
+
         plugin.one_dva = trial.cfg.one_dva;
 
         $('#jspsych-loading-progress-bar-container').remove();
@@ -93,7 +94,7 @@ jsPsych.plugins["beam-glue-keyboard-response"] = (function () {
                 `}\n\n` +
                 `.fix-cue-box {\n` +
                 `\tdisplay: flex;\n` +
-                `\tbackground-size: ${0.8 * plugin.one_dva}px ${0.8 * plugin.one_dva}px;\n` +
+                `\tbackground-size: ${plugin.one_dva}px ${plugin.one_dva}px;\n` +
                 '\tbackground-repeat: no-repeat;\n' +
                 '\tbackground-position: center;\n' +
                 `\twidth: ${Math.ceil(2 * plugin.one_dva)}px;\n` +
